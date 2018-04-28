@@ -3,55 +3,31 @@ var scriptVersion = "0007";
 var inExtensions = /\.(jpg|tif|psd|bmp|gif|png|exr|)$/i;
 var sourceFolder = null;
 
-
 #include "../actions.jsxinc"
-
 
 var today = new Date();
 StartTime = today.valueOf();
-
 var currentActionSets = actionSets.getList()
-
-
-
 
 
 main();
 
-
-
 function main()
 {
-    // bring application forward for double-click events
     app.bringToFront();
-	// user settings
-	var prefs = new Object();
-	prefs.sourceFolder         = '~';  // default browse location (default: '~')
-	prefs.removeFileExtensions = true; // remove filename extensions for imported layers (default: true)
-	prefs.savePrompt           = false; // display save prompt after import is complete (default: false)
-	prefs.closeAfterSave       = false; // close import document after saving (default: false)
-    
-    
     optionsDialog();
-
 }
-
-
-
 
 function scanFiles(inFolder)
 {
-        var allFiles = inFolder.getFiles (inExtensions);
-     //   alert(allFiles.length);
-        //alert (allFiles);
-        return allFiles;
+    var allFiles = inFolder.getFiles (inExtensions);
+    return allFiles;
 }
 
 function performAction (inFile, inActionSet, inAction)
 {
     open(inFile);
     doAction(inAction,inActionSet);
- //   doAction("Test","Hotkeys");
     activeDocument.close (SaveOptions.SAVECHANGES);
     inFile.copy (sourceFolder + "/Done/" + inFile.displayName)
     inFile.remove();
@@ -77,13 +53,7 @@ function optionsDialog()
     OpenGroup = myMainGroup.add("group")
  //   OpenGroup.orientation = 'row';
     OpenGroup.alignChildren = 'left';
-    OpenGroup.alignment = 'left'; 
-        
-
-    
-
-
-
+    OpenGroup.alignment = 'left';
                    
         //>> Previous Projects panel
     SetProjectGroup = OpenGroup.add("panel");   
@@ -131,18 +101,6 @@ function optionsDialog()
          for (var i = 0; i < myTable.length; i++)
          {myTable[i].selection = inValue}
      }
-
-
-    function moveSelectionToTop()
-    {
-        //alert (myTable[0].selection.index);
-        
-        ProjectList.move(myTable[0].selection.index,0);
-   //     var temp = myTable[0].selection.text;
-      //  myTable[0].remove(myTable[0].selection)
-      //  myTable[0].add ("item", temp,0);
-      //  myTable[0].selection =0;
-    }
 
     //Save list on close
     OpenOptionsDialog.onClose = function()
@@ -264,8 +222,6 @@ function optionsDialog()
         for (var i = 0; i < myTable[0].items.length; i++)
         {
             UpdateSelection(i);
-            
-             //  myTable[0].selection  MOOP
                 sourceFolder = Folder(myTable[0].items[i].text)
                 
 
@@ -285,7 +241,6 @@ function optionsDialog()
                     
                     StartNumber++;
                     myTable[3].items[i].text = myTable[3].items[i].text - 1;
-                   // app.refresh();
                 }
             
         }
@@ -299,4 +254,3 @@ function optionsDialog()
     //Show window
 	OpenOptionsDialog.center();
 	var result = OpenOptionsDialog.show();
-}

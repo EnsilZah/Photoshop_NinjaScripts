@@ -1,15 +1,10 @@
 ﻿#target photoshop
 
 var scriptName = "NinjaScript IterateActionLayers";
-var scriptVersion = "0002";
-
-var cID = charIDToTypeID
-var sID = stringIDToTypeID
+var scriptVersion = "0003";
 
 #include "../layers.jsxinc"
 #include "../actions.jsxinc"
-
-
 
 
 main();
@@ -88,7 +83,6 @@ function optionsDialog()
         {
             activeDocument.activeLayer = SelectedLayers[i];
             doAction(DDActions.selection.text, DDActionSet.selection.text);
-            
         }
         OpenOptionsDialog.close()
     }

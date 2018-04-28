@@ -11,4 +11,17 @@ curDoc =
        executeAction( cID( "CnvM" ), desc1, DialogModes.NO );
     },
 
+    duplicate : function (name)
+    {
+        var desc2 = new ActionDescriptor();
+        var ref1 = new ActionReference();
+        ref1.putEnumerated( cID( "Dcmn" ), cID( "Ordn" ), cID( "Frst" ) );
+        desc2.putReference( cID( "null" ), ref1 );
+        if (name)
+        {
+            desc2.putString( cID( "Nm  " ), name );
+        }
+
+        executeAction( cID( "Dplc" ), desc2, DialogModes.NO );
+    },
 }

@@ -18,7 +18,14 @@ selectionPixels =
         return true
     },
 
+
+
 }
+
+
+
+
+
 
 selectionLayers =
 {
@@ -240,6 +247,11 @@ activeLayers =
     duplicateTo : function (dest)
     {
         app.activeDocument.activeLayer.duplicate(dest, ElementPlacement.PLACEAFTER);
+    },
+
+    convertToSmartObject: function ()
+    {
+        executeAction( sID( "newPlacedLayer" ), undefined, DialogModes.NO );
     },
 
 }

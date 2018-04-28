@@ -1,6 +1,7 @@
 ﻿#target photoshop
 #include "layers.jsxinc"
 #include "smartobjects.jsxinc"
+#include "documents.jsxinc"
 
 var NinjaTest = "Have Ninjas";
 
@@ -305,30 +306,15 @@ function makeLayerActiveByName(nm)
 
  function GroupLayers()
  {
-    var desc27 = new ActionDescriptor();
-    var ref18 = new ActionReference();
-    ref18.putClass( sID( "layerSection" ) );
-    desc27.putReference( cID( "null" ), ref18 );
-    var ref19 = new ActionReference();
-    ref19.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
-    desc27.putReference( cID( "From" ), ref19 );
-    executeAction( cID( "Mk  " ), desc27, DialogModes.NO );
-    return activeDocument.activeLayer;
+    //DEPRECATED
+
+    activeLayers.group()
 }
-/*
-function convertToWinpath(inDest)
-{
-    newPath = String(inDest);
-    newPath = newPath.replace (/\//g, "\\")
-    newPath = newPath.charAt(1).toUpperCase() + ":" + newPath.slice(2) + "\\";
-    
-    return newPath;  
-}*/
 
 function convertToSmartObject()
 {
-    var idnewPlacedLayer = stringIDToTypeID( "newPlacedLayer" );
-    executeAction( idnewPlacedLayer, undefined, DialogModes.NO );
+    //DEPRECATED
+    smartobject.make()
 }
 
 function replaceSmartObject (newFile) 
@@ -431,13 +417,8 @@ function PadNumber(inNumber, inPadding)
 
 function duplicateDocument()
 {
-    var desc2 = new ActionDescriptor();
-        var ref1 = new ActionReference();
-
-        ref1.putEnumerated( cID( "Dcmn" ), cID( "Ordn" ), cID( "Frst" ) );
-    desc2.putReference( cID( "null" ), ref1 );
-    desc2.putString( cID( "Nm  " ), """NS_Export_Document""" );
-executeAction( cID( "Dplc" ), desc2, DialogModes.NO );
+    //DEPRECATED, to be removed
+    curDoc.duplicate("""NS_Export_Document""")
 }
 
 function makeActiveByIndex( idx, visible ){
