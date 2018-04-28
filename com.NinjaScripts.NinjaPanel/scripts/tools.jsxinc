@@ -1,0 +1,45 @@
+﻿#include "documents.jsxinc"
+
+var cID = charIDToTypeID
+var sID = stringIDToTypeID
+
+toolCount =
+{
+    clear : function ()
+    {
+        activeDocument.countItems.removeAll()
+    },
+
+    count : function (threshold)
+    {
+        if (!((activeDocument.mode == DocumentMode.RGB) && (activeDocument.bitsPerChannel == BitsPerChannelType.EIGHT)))
+        {
+            docOrig = activeDocument
+            docOrig.countItems.removeAll()
+            docOrig.duplicate('tmpDoc', true )
+            docTmp = activeDocument
+
+            curDoc.changeDepthRGB(8)
+            activeDocument.autoCount(activeDocument.activeChannels[0],threshold)
+
+            this.copy(docTmp, docOrig)
+            docTmp.close(SaveOptions.DONOTSAVECHANGES);
+            activeDocument = docOrig
+        }
+        else
+        {
+            activeDocument.autoCount(activeDocument.activeChannels[0],threshold)
+        }
+    },
+
+    copy : function (docSource, docDest)
+    {
+        //Doesn't seem to work when not using active document
+        listPoints = []
+        activeDocument = docSource
+        for (var i = 0; i < activeDocument.countItems.length; i++) listPoints.push(activeDocument.countItems[i].position);
+        activeDocument = docDest
+        for (var i = 0; i < listPoints.length; i++) docDest.countItems.add(listPoints[i]);
+    },
+
+}

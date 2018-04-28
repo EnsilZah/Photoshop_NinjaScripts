@@ -1,0 +1,128 @@
+
+
+
+
+<!doctype html>
+
+<html>
+<head>
+
+<meta charset="utf-8">
+<script src="./ext.js"></script>
+<script src="./lib/CSInterface.js"></script>
+<script src="./jQueryAssets/jquery-1.8.3.min.js"></script>
+
+
+<link id="ppstyle" rel="stylesheet" type="text/css" href="./style.css">
+<title>NinjaScripts 2.2</title>
+</head>
+
+<body onLoad="onLoaded()">
+<div id="content">
+  <ul>
+
+  
+    
+
+			<li>			
+	
+
+				
+
+				
+
+				
+<body style="overflow: hidden">
+
+
+<script>
+function strContains (inString, subString)
+{
+    return (inString.indexOf(subString) > -1);
+}
+
+function writeHtmlButton (inScript, inIcon, inName)
+{
+    var SizeHeight = 22;
+    var SizeWidth =  148;
+
+    var outHtml = "<button class='default' id='btn_PHXS'  onClick='runJSX(\""+ inScript +"\")' style='height: "+SizeHeight + "px; width: "+ SizeWidth +"px'>";
+    outHtml += "\n" +  "<img src='"+ inIcon +"' alt='' align='left'/>"
+    outHtml += "\n" + inName + "\n" + "</button>";
+    
+    return outHtml;
+}
+
+function readContents(inFile)
+{
+    result = window.cep.fs.readFile(inFile)
+   	if (result.err != 0) {return ""}
+    
+
+
+    return result.data;
+}
+     //alert(readContents("C:/Program Files (x86)/Common Files/Adobe/CEP/extensions/com.NinjaScripts.NinjaPanel/scripts/!01_NS_ImportFolders/NS_ImportFolders.txt"))
+
+	var csInterface = new CSInterface();
+	var extensionRoot = csInterface.getSystemPath(SystemPath.EXTENSION);
+
+	var result = window.cep.fs.readdir(extensionRoot +"/scripts");
+	var FolderFiles = result.data;
+
+	var FolderList = new Array;
+
+	    for (i = 0; i < FolderFiles.length; i++)
+    {
+    	//alert(window.cep.fs.isdirectory(extensionRoot +"/scripts/"+FolderFiles[i]).data.isDirectory == true);
+
+    	//document.writeln(FolderList[i].isDirectory())
+    	//alert();
+         if (strContains(FolderFiles[i], "NS_") && window.cep.fs.stat(extensionRoot +"/scripts/"+FolderFiles[i]).data.isDirectory()) {FolderList.push(FolderFiles[i])}
+         	//(FolderFiles[i].isDirectory()) && (strContains(FolderFiles[i], "NS_"))
+    }
+
+	for (var i = 0; i < FolderList.length; i++)
+	{
+		var NameOfFile = (FolderList[i][0] == "!")? FolderList[i].substring(4):FolderList[i];
+        var NameOfFolder = FolderList[i];
+
+        if (NameOfFile == "NS_SPACER")  //Create Spacer
+        {
+            document.writeln("\n\n" + '<p> </p><hr width="50%" size="2" noshade><p> </p>');
+        }
+        else    //Create Button
+        {
+        	
+           var scriptPath = "scripts" + "/" + NameOfFolder + "/" + NameOfFile + ".jsx";
+            var scriptIcon = "scripts" + "/" + NameOfFolder + "/" + NameOfFile + ".png";
+            var scriptName = readContents(extensionRoot +"/scripts/" + NameOfFolder +"/" + NameOfFile + ".txt")
+            if (scriptName == "" || scriptName == null) scriptName = NameOfFile;
+
+            //document.writeln(scriptPath)
+         //   
+           // if (scriptName == "" || scriptName == null) scriptName = NameOfFile;
+            //document.writeln(scriptName)
+            document.writeln("\n\n" + writeHtmlButton(scriptPath, scriptIcon, scriptName));
+        }
+
+    
+    //  document.writeln(NameOfFolder)
+	//	if (result.data[i])
+	//	document.writeln(result.data[i])
+	}
+	//document.writeln(extensionRoot);
+//	csInterface.evalScript('$.evalFile("'+ extensionRoot + '/' + 'ReturnFolders.jsx' +'")');
+</script>
+
+
+			</li>
+			
+					
+							
+					
+		
+  </ul>
+</div></body>
+
+</html>

@@ -1,0 +1,34 @@
+
+body {overflow-y: hidden;
+text-align:left;
+}
+
+button, select, input
+{
+border:1px solid;
+height:0px;
+}
+
+input[type=text]
+{
+height:16px;
+}
+
+#content {
+margin-right:auto;
+margin-left:auto;
+vertical-align:top;
+width:100%;
+}
+
+#content ul {
+padding:0px;
+}
+
+#content ul li {
+margin:0px 0px 0px 0px;
+}
+
+p { 
+line-height: 0px; 
+} 

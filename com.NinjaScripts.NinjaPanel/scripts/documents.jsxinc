@@ -1,0 +1,14 @@
+﻿var cID = charIDToTypeID
+var sID = stringIDToTypeID
+
+curDoc =
+{
+    changeDepthRGB : function (depth)
+    {
+       activeDocument.changeMode(ChangeMode.RGB);
+       var desc1 = new ActionDescriptor();
+       desc1.putInteger( cID( "Dpth" ), depth );
+       executeAction( cID( "CnvM" ), desc1, DialogModes.NO );
+    },
+
+}

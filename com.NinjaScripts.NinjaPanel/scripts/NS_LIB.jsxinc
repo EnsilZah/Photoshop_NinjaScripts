@@ -1,0 +1,533 @@
+﻿#target photoshop
+#include "layers.jsxinc"
+#include "smartobjects.jsxinc"
+
+var NinjaTest = "Have Ninjas";
+
+function px (inVal) {return UnitValue(inVal,"px")}
+var cID = charIDToTypeID
+var sID =  stringIDToTypeID
+
+function colorDsc(red , green, blue)
+{
+    var dscColor = new ActionDescriptor();
+    dscColor.putDouble( cID( "Rd  " ), red );
+    dscColor.putDouble( cID( "Grn " ), green );
+    dscColor.putDouble( cID( "Bl  " ) , blue );
+    var dscColorReturn = new ActionDescriptor();
+    dscColorReturn.putObject( cID( "Clr " ), cID( "RGBC" ), dscColor );
+    return dscColorReturn
+}
+
+dscColorBlack = colorDsc(0,0,0)
+dscColorGrey = colorDsc(128,128,128)
+dscColorWhite = colorDsc(255,255,255)
+
+
+// Starting Checks
+//////////////////////////////////
+function checkOpenDocument()
+{
+    if (app.documents.length == 0) 
+    { return false; }
+    return true;
+}
+
+
+// End Starting Cehcks
+
+
+// Alpha
+//////////////////////////////////
+
+function alphaFromDocTransp()
+{
+    try
+    {
+        var desc5 = new ActionDescriptor();
+        desc5.putClass( cID( "Nw  " ), cID( "Chnl" ) );
+        var desc6 = new ActionDescriptor();
+        var ref3 = new ActionReference();
+        ref3.putEnumerated( cID( "Chnl" ), cID( "Chnl" ), cID( "Trsp" ) );
+        ref3.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Mrgd" ) );
+        desc6.putReference(  cID( "T   " ), ref3 );
+        desc5.putObject( cID( "Usng" ), cID( "Clcl" ), desc6 );
+        executeAction( cID( "Mk  " ), desc5, DialogModes.NO );
+        return true;
+    }
+    catch(e)
+    { return false;}
+}
+
+// End Alpha
+
+//Creates solid of color inColor
+ function CreateSolid(inColor)
+ {
+    var desc2 = new ActionDescriptor();
+    desc2.putObject( cID( "Type" ), sID( "solidColorLayer" ), inColor );
+
+    var ref1 = new ActionReference();
+    ref1.putClass( sID( "contentLayer" ) );
+    var desc1 = new ActionDescriptor();
+    desc1.putReference( cID( "null" ), ref1 );
+    desc1.putObject( cID( "Usng" ), sID( "contentLayer" ), desc2 );
+    executeAction( cID( "Mk  " ), desc1, DialogModes.NO );
+ }
+
+function ChangeSolidColor (inLayer, inColor)
+{
+    activeDocument.activeLayer = inLayer;
+    var desc5 = new ActionDescriptor();
+    var ref2 = new ActionReference();
+    ref2.putEnumerated( sID( "contentLayer" ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc5.putReference( cID( "null" ), ref2 );      
+    desc5.putObject( cID( "T   " ), sID( "solidColorLayer" ), inColor );
+    executeAction( cID( "setd" ), desc5, DialogModes.NO ); 
+}
+
+ function layerExists(inLayerName)
+{
+    try{
+        app.activeDocument.artLayers.getByName(inLayerName);
+        return true;
+        }
+    catch(e)
+    { return false;}
+}
+
+//Converts document to RGB, input BitDepth
+function convRGBBit(inBitDepth)
+{
+   activeDocument.changeMode(ChangeMode.RGB);
+   var id1 = cID( "CnvM" );
+   var desc1 = new ActionDescriptor();
+   var id2 = cID( "Dpth" );
+   desc1.putInteger( id2, inBitDepth );
+   executeAction( id1, desc1, DialogModes.NO );
+}
+
+//Duplicate selected layers to new document
+function createCompFromLayers()
+{
+    var desc12 = new ActionDescriptor();
+    var ref15 = new ActionReference();
+    ref15.putClass( cID( "Dcmn" ) );
+    desc12.putReference( cID( "null" ), ref15 );
+    desc12.putString( cID( "Nm  " ), "NS_LayerComp" );
+    var ref16 = new ActionReference();
+    ref16.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc12.putReference( cID( "Usng" ), ref16 );
+    var idVrsn = cID( "Vrsn" );
+    desc12.putInteger( idVrsn, 5 );
+
+    try
+    {
+        executeAction( cID( "Mk  " ), desc12, DialogModes.NO );
+        return true;
+    } catch (e) { return false;}
+ }
+
+function hasSmartFilter()
+{
+    var res = false;
+    var ref = new ActionReference();
+    ref.putEnumerated( cID("Lyr "), cID("Ordn"), cID("Trgt") ); 
+    var desc = executeActionGet(ref);
+    
+    if(desc.hasKey(sID("smartObject")))
+    {
+        desc = desc.getObjectValue(sID("smartObject"));
+        if(desc.hasKey(sID("filterFX"))) res = true;
+    }
+    return res;
+}
+
+
+function SmartObjSetVis (inValue)
+{
+    var idHide = cID( "Hd  " );
+    var idShow =  cID( 'Shw ');
+
+    var desc16 = new ActionDescriptor();
+    var ref10 = new ActionReference();
+    ref10.putClass( sID( "filterFX" ) );
+    ref10.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc16.putReference( cID( "null" ), ref10 );
+    executeAction( (inValue ?   idShow:idHide), desc16, DialogModes.NO );
+}
+
+function iterateOpacity(layerNode) 
+{    
+    for (var i=0; i<layerNode.length; i++)
+    {
+       
+        layerSet = layerNode[i];
+        layerSet.opacity = 100;
+        layerSet.fillOpacity = 100;
+        
+        iterateOpacity(layerNode[i].layerSets);
+
+        for(var layerIndex=0; layerIndex < layerNode[i].artLayers.length; layerIndex++) 
+        {
+            var layer=layerNode[i].artLayers[layerIndex];
+            layer.opacity = 100;
+            layer.fillOpacity = 100;
+        }
+    }
+}
+
+function iterateDisableFilters(layerNode) {    
+    for (var i=0; i<layerNode.length; i++)
+    {
+   
+        iterateDisableFilters(layerNode[i].layerSets);
+
+        for(var layerIndex=0; layerIndex < layerNode[i].artLayers.length; layerIndex++)
+        {
+            var layer=layerNode[i].artLayers[layerIndex];
+            activeDocument.activeLayer = layer;
+            if (hasSmartFilter()) { SmartObjSetVis (false)}
+        }
+    }
+    app.activeDocument.activeLayer = BG_Layer;
+}
+
+ function selectAllLayers()
+ {
+    var desc15 = new ActionDescriptor();
+    var ref4 = new ActionReference();
+    ref4.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc15.putReference( cID( "null" ), ref4 );
+    executeAction( sID( "selectAllLayers" ), desc15, DialogModes.NO );
+}
+
+ function SelectAllLayers()
+ {
+    var desc15 = new ActionDescriptor();
+    var ref4 = new ActionReference();
+    ref4.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc15.putReference( cID( "null" ), ref4 );
+    executeAction( sID( "selectAllLayers" ), desc15, DialogModes.NO );
+}
+
+function SetLayersVisible(inValue)
+{
+    var desc6 = new ActionDescriptor();
+    var list2 = new ActionList();
+    var ref5 = new ActionReference();
+    ref5.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    list2.putReference( ref5 );
+    desc6.putList( cID( "null" ), list2 );
+    executeAction( (inValue)? cID( "Shw " ):cID( "Hd  " ), desc6, DialogModes.NO );
+}
+
+function SelectTransp()
+{
+    var desc3 = new ActionDescriptor();
+    var ref2 = new ActionReference();
+    ref2.putProperty( cID( "Chnl" ), cID( "fsel" ) );
+    desc3.putReference( cID( "null" ), ref2 );
+    var ref3 = new ActionReference();
+    ref3.putEnumerated( cID( "Chnl" ), cID( "Chnl" ), cID( "Trsp" ) );
+    desc3.putReference(cID( "T   " ), ref3 );
+    executeAction( cID( "setd" ), desc3, DialogModes.NO );
+ }
+
+function SelectionToAlpha()
+{
+    var desc4 = new ActionDescriptor();
+    var ref4 = new ActionReference();
+    ref4.putProperty( cID( "Chnl" ), cID( "fsel" ) );
+    desc4.putReference( cID( "null" ), ref4 );
+    executeAction( cID( "Dplc" ), desc4, DialogModes.NO );
+}
+
+function NeedsAlpha()
+{
+    try
+    {
+        if(app.activeDocument.selection.solid)
+        {
+            if ((app.activeDocument.selection.bounds[0].as('px') == 0) && (app.activeDocument.selection.bounds[1].as('px') == 0) && (app.activeDocument.selection.bounds[2].as('px') == app.activeDocument.width.as('px')) && (app.activeDocument.selection.bounds[3].as('px') == app.activeDocument.height.as('px')))
+            {
+                return false;
+            }
+        }  
+        return true;
+        }
+        catch(e)
+    {       
+        return false;
+    }   
+}
+
+function copyMerged()
+{   
+    app.activeDocument.selection.selectAll();
+    
+    try    {    app.activeDocument.selection.copy(true);    }
+    catch(e)
+    { 
+
+        activeDocument.selection.copy();
+                app.activeDocument.selection.deselect();
+        
+        return false;    }
+    app.activeDocument.selection.deselect();
+}
+
+function pasteInPlace(inName)
+{
+    var descInPlace= new ActionDescriptor();
+
+    descInPlace.putBoolean( sID( "inPlace" ), true );
+    descInPlace.putEnumerated( cID( "AntA" ), cID( "Annt" ), cID( "Anno" ) );
+    executeAction( cID( "past" ),  descInPlace, DialogModes.NO );
+    
+    if (inName != null) {app.activeDocument.activeLayer.name = inName;}
+    return true
+}
+
+function makeLayerActiveByName(nm)
+{
+    try 
+    {
+        var desc5 = new ActionDescriptor();
+        var ref4 = new ActionReference();
+        ref4.putName( cID('Lyr '),  nm);
+        desc5.putReference( cID('null'), ref4 );
+        desc5.putBoolean( cID('MkVs'), false );
+        executeAction( cID('slct'), desc5, DialogModes.NO );
+        return true; 
+    } catch (e) { return false; } 
+}
+
+ function GroupLayers()
+ {
+    var desc27 = new ActionDescriptor();
+    var ref18 = new ActionReference();
+    ref18.putClass( sID( "layerSection" ) );
+    desc27.putReference( cID( "null" ), ref18 );
+    var ref19 = new ActionReference();
+    ref19.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc27.putReference( cID( "From" ), ref19 );
+    executeAction( cID( "Mk  " ), desc27, DialogModes.NO );
+    return activeDocument.activeLayer;
+}
+/*
+function convertToWinpath(inDest)
+{
+    newPath = String(inDest);
+    newPath = newPath.replace (/\//g, "\\")
+    newPath = newPath.charAt(1).toUpperCase() + ":" + newPath.slice(2) + "\\";
+    
+    return newPath;  
+}*/
+
+function convertToSmartObject()
+{
+    var idnewPlacedLayer = stringIDToTypeID( "newPlacedLayer" );
+    executeAction( idnewPlacedLayer, undefined, DialogModes.NO );
+}
+
+function replaceSmartObject (newFile) 
+{
+    var desc = new ActionDescriptor();
+    desc.putPath( cID("null"), new File(newFile));
+    desc.putInteger(cID("PgNm"), 1);
+	executeAction(sID( "placedLayerReplaceContents" ), desc, DialogModes.NO);
+	return app.activeDocument.activeLayer
+}
+
+
+function getCenter(inLayer)
+{
+    //DEPRECATED
+    return layerOps.center(inLayer)
+}
+
+function getCenterThreshhold(inThreshhold)
+{
+    ///
+
+    var TempActive = activeDocument.activeLayer
+    var Temp = activeDocument.activeLayer.duplicate();
+    activeDocument.activeLayer= Temp;
+    activeDocument.activeLayer.resize(100/(activeDocument.activeLayer.bounds[2] - activeDocument.activeLayer.bounds[0]));
+    SelectTransp(); 
+
+    activeDocument.quickMaskMode=true;
+
+    activeDocument.activeLayer.threshold (40);
+    activeDocument.quickMaskMode=false;
+    var     TmpBounds = activeDocument.selection.bounds;
+    app.activeDocument.selection.deselect();
+    
+    Temp.remove();
+
+    activeDocument.activeLayer = TempActive;
+
+    ///
+    
+
+    
+    var Pivot = new Array();
+    Pivot[0] = (TmpBounds[2] + TmpBounds[0])/2;
+    Pivot[1] = (TmpBounds[3] + TmpBounds[1])/2;
+    return Pivot
+}
+
+
+function alignToDocCenter(inLayerDynamic)
+{
+    var Distance = new Array();
+    centerDynamic =  getCenter(inLayerDynamic)
+    inLayerDynamic.translate (activeDocument.width/2 - centerDynamic[0], activeDocument.height/2 - centerDynamic[1])
+}
+
+function alignToDocCenterThreshhold(inLayerDynamic, inThreshhold)
+{
+    var Distance = new Array();
+    centerDynamic =  getCenterThreshhold (inThreshhold)
+    inLayerDynamic.translate (activeDocument.width/2 - centerDynamic[0], activeDocument.height/2 - centerDynamic[1])
+}
+
+function unGroup()
+{
+    //DEPRECATED
+    curGroup.ungroup()
+}
+
+function ungroup()
+{
+    //DEPRECATED
+    curGroup.ungroup()
+}
+
+function returnFolderAtLevel(inPath, inLevel)
+{
+    var currentIndex = inPath.indexOf("/");
+    
+    for(var i =0; i<inLevel; i++)
+    {
+        lastIndex= currentIndex;
+        currentIndex = inPath.indexOf("/",currentIndex+1);
+      }
+        
+
+        
+        endIndex = inPath.indexOf(("/"),currentIndex+1)
+        if (endIndex == -1) endIndex = inPath.length;
+    return inPath.slice (currentIndex +1, endIndex).toLowerCase()
+}
+
+function PadNumber(inNumber, inPadding)
+{
+    workNumber = inNumber.toString()
+    while (workNumber.length < inPadding) workNumber = "0" + workNumber;
+    return workNumber;
+}
+
+function duplicateDocument()
+{
+    var desc2 = new ActionDescriptor();
+        var ref1 = new ActionReference();
+
+        ref1.putEnumerated( cID( "Dcmn" ), cID( "Ordn" ), cID( "Frst" ) );
+    desc2.putReference( cID( "null" ), ref1 );
+    desc2.putString( cID( "Nm  " ), """NS_Export_Document""" );
+executeAction( cID( "Dplc" ), desc2, DialogModes.NO );
+}
+
+function makeActiveByIndex( idx, visible ){
+    var desc = new ActionDescriptor();
+      var ref = new ActionReference();
+      ref.putIndex(cID( "Lyr " ), idx)
+      desc.putReference( cID( "null" ), ref );
+      desc.putBoolean( cID( "MkVs" ), visible );
+   executeAction( cID( "slct" ), desc, DialogModes.NO );
+};
+
+function getSelectedLayersIdx(){ 
+      var selectedLayers = new Array; 
+      var ref = new ActionReference(); 
+      ref.putEnumerated( charIDToTypeID("Dcmn"), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") ); 
+      var desc = executeActionGet(ref); 
+      if( desc.hasKey( stringIDToTypeID( 'targetLayers' ) ) ){ 
+         desc = desc.getList( stringIDToTypeID( 'targetLayers' )); 
+          var c = desc.count 
+          var selectedLayers = new Array(); 
+          for(var i=0;i<c;i++){ 
+            try{ 
+               activeDocument.backgroundLayer; 
+               selectedLayers.push(  desc.getReference( i ).getIndex() ); 
+            }catch(e){ 
+               selectedLayers.push(  desc.getReference( i ).getIndex()+1 ); 
+            } 
+          } 
+       }else{ 
+         var ref = new ActionReference(); 
+         ref.putProperty( charIDToTypeID("Prpr") , charIDToTypeID( "ItmI" )); 
+         ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") ); 
+         try{ 
+            activeDocument.backgroundLayer; 
+            selectedLayers.push( executeActionGet(ref).getInteger(charIDToTypeID( "ItmI" ))-1); 
+         }catch(e){ 
+            selectedLayers.push( executeActionGet(ref).getInteger(charIDToTypeID( "ItmI" ))); 
+         } 
+     var vis = app.activeDocument.activeLayer.visible;
+        if(vis == true) app.activeDocument.activeLayer.visible = false;
+        var desc9 = new ActionDescriptor();
+    var list9 = new ActionList();
+    var ref9 = new ActionReference();
+    ref9.putEnumerated( charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt') );
+    list9.putReference( ref9 );
+    desc9.putList( charIDToTypeID('null'), list9 );
+    executeAction( charIDToTypeID('Shw '), desc9, DialogModes.NO );
+    if(app.activeDocument.activeLayer.visible == false) selectedLayers.shift();
+        app.activeDocument.activeLayer.visible = vis;
+      } 
+      return selectedLayers; 
+};
+
+function layerStroke(inSize, inOpacity, inColor)
+{  
+    var desc11 = new ActionDescriptor();
+    var ref5 = new ActionReference();
+    ref5.putProperty(  cID( "Prpr" ),  cID( "Lefx" ) );
+    ref5.putEnumerated(   cID( "Lyr " ),  cID( "Ordn" ), cID( "Trgt" ) );
+    desc11.putReference(  cID( "null" ), ref5 );
+    var desc12 = new ActionDescriptor();
+    desc12.putUnitDouble(  cID( "Scl " ),  cID( "#Prc" ), 100.000000 );
+    var desc13 = new ActionDescriptor();
+    desc13.putBoolean( cID( "enab" ), true );
+    desc13.putEnumerated( cID( "Styl" ), cID( "FStl" ), cID( "OutF" ) );
+    desc13.putEnumerated( cID( "PntT" ), cID( "FrFl" ),   cID( "SClr" ) );
+    desc13.putEnumerated(  cID( "Md  " ), cID( "BlnM" ),  cID( "Nrml" ) );
+    desc13.putUnitDouble( cID( "Opct" ),  cID( "#Prc" ), inOpacity );
+    desc13.putUnitDouble( cID( "Sz  " ), cID( "#Pxl" ), inSize );
+    var desc14 = new ActionDescriptor();
+    desc14.putDouble( cID( "Rd  " ), inColor[0] );
+    desc14.putDouble( cID( "Grn " ), inColor[1] );
+    desc14.putDouble( cID( "Bl  " ), inColor[2] );
+    desc13.putObject( cID( "Clr " ),  cID( "RGBC" ), desc14 );
+    desc12.putObject( cID( "FrFX" ), cID( "FrFX" ), desc13 );
+    desc11.putObject(cID( "T   " ),  cID( "Lefx" ), desc12 );
+    executeAction( cID( "setd" ), desc11, DialogModes.NO );
+}
+
+function SanitizeFilename (inString)
+{
+    return inString.replace(/[|&:? *\/\\;$%@"<>()+,]/g, "_")
+}
+
+function layerUnstroke()
+{
+    var desc1055 = new ActionDescriptor();
+    var ref685 = new ActionReference();
+    ref685.putClass( cID( "FrFX" ) );
+    ref685.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+    desc1055.putReference( cID( "null" ), ref685 );
+    executeAction( cID( "dsfx" ), desc1055, DialogModes.NO );
+}

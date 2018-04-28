@@ -1,0 +1,45 @@
+var cID = charIDToTypeID
+var sID = stringIDToTypeID
+
+actionSets =
+{
+    getList : function ()
+    {
+      var i = 1;
+      var sets = [];
+      while (true) {
+        var ref = new ActionReference();
+        ref.putIndex(cID("ASet"), i);
+        var desc;
+        var lvl = $.level;
+        $.level = 0;
+        try {
+          desc = executeActionGet(ref);
+        } catch (e) {
+          break;    // all done
+        } finally {
+          $.level = lvl;
+        }
+        if (desc.hasKey(cID("Nm  "))) {
+          var set = {};
+          set.index = i;
+          set.name = desc.getString(cID("Nm  "));
+          set.toString = function() { return this.name; };
+          set.count = desc.getInteger(cID("NmbC"));
+          set.actions = [];
+          for (var j = 1; j <= set.count; j++) {
+            var ref = new ActionReference();
+            ref.putIndex(cID('Actn'), j);
+            ref.putIndex(cID('ASet'), set.index);
+            var adesc = executeActionGet(ref);
+            var actName = adesc.getString(cID('Nm  '));
+            set.actions.push(actName);
+          }
+          sets.push(set);
+        }
+        i++;
+      }
+      return sets;
+    },
+
+}

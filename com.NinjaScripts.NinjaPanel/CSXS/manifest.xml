@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ExtensionManifest Version="4.0" ExtensionBundleId="com.NinjaScripts.NinjaPanel" ExtensionBundleVersion="2.2"
+		ExtensionBundleName="NinjaPanel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Author>
+		<![CDATA[Tammuz Kay]]>
+	</Author>	<ExtensionList>
+		<Extension Id="com.NinjaScripts.NinjaPanel.extension1" Version="2.2.0" />
+	</ExtensionList>
+	<ExecutionEnvironment>
+		<HostList>
+			<Host Name="PHSP" Version="[13.0,99.9]" />
+			<Host Name="PHXS" Version="[13.0,99.9]" />
+		</HostList>
+		<LocaleList>
+			<Locale Code="All" />
+		</LocaleList>
+		<RequiredRuntimeList>
+			<RequiredRuntime Name="CSXS" Version="4.0" />
+
+		</RequiredRuntimeList>
+	</ExecutionEnvironment>
+	<DispatchInfoList>
+		<Extension Id="com.NinjaScripts.NinjaPanel.extension1">
+			<DispatchInfo >
+				<Resources>
+					<CEFCommandLine>
+							<Parameter>--enable-nodejs</Parameter>
+					</CEFCommandLine>
+
+				<MainPath>./index.html</MainPath>
+				<ScriptPath>./NinjaPanel.jsx</ScriptPath>
+				</Resources>
+				<Lifecycle>
+					<AutoVisible>true</AutoVisible>
+				</Lifecycle>
+				<UI>
+					<Type>Panel</Type>
+					<Menu>NinjaScripts 2.2</Menu>
+					<Geometry>
+						<Size>
+							<Height>700</Height>
+							<Width>180</Width>
+						</Size>
+						<MaxSize>
+							<Height>2000</Height>
+							<Width>180</Width>
+						</MaxSize>
+						<MinSize>
+							<Height>100</Height>
+							<Width>180</Width>
+						</MinSize>
+					</Geometry>
+					<Icons>
+						<Icon Type="Normal">./images/Logo_02.png</Icon>
+					</Icons>
+				</UI>
+			</DispatchInfo>
+		</Extension>
+	</DispatchInfoList>
+</ExtensionManifest>

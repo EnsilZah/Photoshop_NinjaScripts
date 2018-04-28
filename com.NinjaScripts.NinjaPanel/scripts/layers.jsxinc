@@ -1,0 +1,335 @@
+﻿var cID = charIDToTypeID
+var sID =  stringIDToTypeID
+
+
+
+selectionPixels =
+{
+    selectSquare : function (rect)
+    {
+        activeDocument.selection.select (rectOps.toPoints(rect))
+    },
+
+    hasSelection : function ()
+    {
+        try {activeDocument.selection.bounds}
+        catch (e)
+        { return false}
+        return true
+    },
+
+}
+
+selectionLayers =
+{
+    selectAll : function ()
+    {
+        var desc15 = new ActionDescriptor();
+        var ref4 = new ActionReference();
+        ref4.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+        desc15.putReference( cID( "null" ), ref4 );
+        executeAction( sID( "selectAllLayers" ), desc15, DialogModes.NO );
+    },
+
+
+    addIndices : function (indices)
+    {
+        for (var i = 0; i<indices.length; i++)
+        {
+            try
+            {
+                this.addIndex(indices[i])
+            }
+            catch(e)
+            {
+                alert(e)
+            }
+        }
+    },
+
+    addIndex : function(index)
+    {
+        var oDesc3 = new ActionDescriptor();
+        var oRef3 = new ActionReference();
+        oRef3.putIndex( cID( "Lyr " ), index );
+        oDesc3.putReference( cID( "null" ), oRef3 );
+        var oID15 = sID( "selectionModifier" );
+        var oID16 = sID( "selectionModifierType" );
+        var oID17 = sID( "addToSelection" );
+        oDesc3.putEnumerated( oID15, oID16, oID17 );
+        oDesc3.putBoolean( cID( "MkVs" ), false );
+        executeAction( cID( "slct" ), oDesc3, DialogModes.NO );
+    },
+
+    getIndex : function()
+    {
+      var selectedLayers = new Array;
+      var ref = new ActionReference();
+      ref.putEnumerated( cID("Dcmn"), cID("Ordn"), cID("Trgt") );
+      var desc = executeActionGet(ref);
+      if( desc.hasKey( sID( 'targetLayers' ) ) ){
+         desc = desc.getList( sID( 'targetLayers' ));
+          var c = desc.count
+          var selectedLayers = new Array();
+          for(var i=0;i<c;i++){
+            try{
+               activeDocument.backgroundLayer;
+               selectedLayers.push(  desc.getReference( i ).getIndex() );
+            }catch(e){
+               selectedLayers.push(  desc.getReference( i ).getIndex()+1 );
+            }
+          }
+       }else{
+         var ref = new ActionReference();
+         ref.putProperty( cID("Prpr") , cID( "ItmI" ));
+         ref.putEnumerated( cID("Lyr "), cID("Ordn"), cID("Trgt") );
+         try{
+            activeDocument.backgroundLayer;
+            selectedLayers.push( executeActionGet(ref).getInteger(cID( "ItmI" ))-1);
+         }catch(e){
+            selectedLayers.push( executeActionGet(ref).getInteger(cID( "ItmI" )));
+         }
+      }
+      return selectedLayers;
+    },
+
+    getLayers : function()
+    {
+      var resultLayers=new Array();
+      try{
+        var descGrp = new ActionDescriptor();
+        var refGrp = new ActionReference();
+        refGrp.putEnumerated(cID( "Lyr " ),cID( "Ordn" ),cID( "Trgt" ));
+        descGrp.putReference(cID( "null" ), refGrp );
+        executeAction( sID( "groupLayersEvent" ), descGrp, DialogModes.NO );
+        for (var ix=0;ix<app.activeDocument.activeLayer.layers.length;ix++){resultLayers.push(app.activeDocument.activeLayer.layers[ix])}
+        var desc5 = new ActionDescriptor();
+        var ref2 = new ActionReference();
+        ref2.putEnumerated( cID( "HstS" ), cID( "Ordn" ), cID( "Prvs" ) );
+        desc5.putReference( cID( "null" ), ref2 );
+        executeAction( cID( "slct" ), desc5, DialogModes.NO );
+      } catch (err) { }
+      return resultLayers;
+    },
+}
+
+
+layerOps =
+{
+    center : function(layer)
+    {
+        return rectOps.center(layer.bounds)
+    },
+
+    matchCenter : function (layerReference, layerMoving)
+    {
+        centerReference = rectOps.center(layerReference.bounds)
+        this.moveCenter(layerMoving, centerReference)
+    },
+
+    moveCenter : function (layer, pointDest)
+    {
+        centerLayer = rectOps.center(layer.bounds)
+
+        vectorMovement = vectOps.difference(centerLayer, pointDest)
+        layer.translate (vectorMovement[0], vectorMovement[1])
+    },
+
+    getID : function (layer)
+    {
+        activeDocument.activeLayer = layer;
+        var ref = new ActionReference();
+        ref.putProperty(sID("property"), sID("layerID"));
+        ref.putEnumerated( cID("Lyr "), cID("Ordn"), cID("Trgt") );
+        var layerDesc = executeActionGet(ref);
+        return layerDesc.getInteger(sID("layerID"));
+    },
+
+    duplicateTransform : function (layerID, translate, scale, rotate)
+    {
+        try
+        {
+            var desc13 = new ActionDescriptor();
+            var ref7 = new ActionReference();
+            ref7.putIdentifier( cID( "Lyr " ), layerID );
+            desc13.putReference( cID( "null" ), ref7 );
+            desc13.putBoolean( cID( "MkVs" ), false );
+            executeAction( cID( "slct" ), desc13, DialogModes.NO );
+            var desc10 = new ActionDescriptor();
+            var ref6 = new ActionReference();
+            ref6.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+            desc10.putReference(  cID( "null" ), ref6 );
+            desc10.putEnumerated( cID( "FTcs" ), cID( "QCSt" ), cID( "Qcsa" ) );
+            var idOfst = cID( "Ofst" );
+            var desc11 = new ActionDescriptor();
+            desc11.putUnitDouble( cID( "Hrzn" ), cID( "#Pxl" ), translate[0] );
+            desc11.putUnitDouble( cID( "Vrtc" ), cID( "#Pxl" ), translate[1] );
+            desc10.putObject( cID( "Ofst" ), cID( "Ofst" ), desc11 );
+            desc10.putUnitDouble( cID( "Wdth" ), cID( "#Prc" ), scale[0] );
+            desc10.putUnitDouble( cID( "Hght" ), cID( "#Prc" ), scale[1] );
+            desc10.putUnitDouble( cID( "Angl" ), cID( "#Ang" ), rotate );
+            desc10.putEnumerated( cID( "Intr" ), cID( "Intp" ), sID( "bicubicAutomatic" ) );
+            desc10.putBoolean( cID( "Cpy " ), true );
+            executeAction( cID( "Trnf" ), desc10, DialogModes.NO );
+            return app.activeDocument.activeLayer
+        }
+        catch (e)
+        {alert("Error");}
+    },
+}
+
+rectOps =
+{
+    center : function (rect)
+    {
+        return [(rect[2] + rect[0])/2, (rect[3] + rect[1])/2]
+    },
+
+    toPoints : function (rect)
+    {
+        return [[rect[0],rect[1]]     ,[rect[0],rect[3]]    ,[rect[2],rect[3]]       ,[rect[2],rect[1]] ]
+    },
+
+    size : function (rect)
+    {
+        return [rect[2] - rect[0], rect[3] - rect[1]]
+    },
+
+    ratio : function (rectA, rectB)
+    {
+        sizeA = this.size(rectA)
+        sizeB = this.size(rectB)
+        return [sizeA[0]/sizeB[0], sizeA[1]/sizeB[1]]
+    },
+
+}
+
+vectOps =
+{
+    difference : function (vectA, vectB)
+    {
+        return [vectB[0]-vectA[0],vectB[1]-vectA[1]]
+    }
+}
+
+
+curDoc =
+{
+    ensureNoBG : function()
+    {
+        if (activeDocument.artLayers.length != 0) { activeDocument.artLayers[activeDocument.artLayers.length - 1].isBackgroundLayer = false; }
+    },
+}
+
+
+activeLayers =
+{
+    group : function ()
+    {
+        var desc27 = new ActionDescriptor();
+        var ref18 = new ActionReference();
+        ref18.putClass( sID( "layerSection" ) );
+        desc27.putReference( cID( "null" ), ref18 );
+        var ref19 = new ActionReference();
+        ref19.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+        desc27.putReference( cID( "From" ), ref19 );
+        executeAction( cID( "Mk  " ), desc27, DialogModes.NO );
+        return activeDocument.activeLayer;
+    },
+
+    duplicateTo : function (dest)
+    {
+        app.activeDocument.activeLayer.duplicate(dest, ElementPlacement.PLACEAFTER);
+    },
+
+}
+
+
+layerText =
+{
+    is : function(layer)
+    {
+        return layer.kind == LayerKind.TEXT
+    },
+
+    reverse: function(layer)
+    {
+        if (!this.is(layer)) return;
+        layer.textItem.contents = stringOps.reverse(layer.textItem.contents)
+    },
+}
+
+stringOps =
+{
+    reverse : function (str)
+    {
+        return str.split("").reverse().join("")
+    },
+
+}
+
+
+curGroup =
+{
+    ungroup : function ()
+    {
+        var desc2 = new ActionDescriptor();
+        var ref1 = new ActionReference();
+        ref1.putEnumerated( cID( "Lyr " ), cID( "Ordn" ), cID( "Trgt" ) );
+        desc2.putReference( cID( "null" ), ref1 );
+        executeAction( sID( "ungroupLayersEvent" ), desc2, DialogModes.NO );
+    },
+}
+
+
+curLayer =
+{
+    hasLayerMask : function ()
+    {
+        var hasLayerMask = false;
+        try
+        {
+            var ref = new ActionReference();
+            var keyUserMaskEnabled = cID( 'UsrM' );
+            ref.putProperty( cID( 'Prpr' ), keyUserMaskEnabled );
+            ref.putEnumerated( cID( 'Lyr ' ), cID( 'Ordn' ), cID( 'Trgt' ) );
+            var desc = executeActionGet( ref );
+            if ( desc.hasKey( keyUserMaskEnabled ) )
+            {
+                hasLayerMask = true;
+            }
+        }
+        catch(e)
+        {
+            hasLayerMask = false;
+        }
+        return hasLayerMask;
+    },
+
+    hasVectorMask : function ()
+    {
+        var hasVectorMask = false;
+        try
+        {
+            var ref = new ActionReference();
+            var keyVectorMaskEnabled = sID( 'vectorMask' );
+            var keyKind = cID( 'Knd ' );
+            ref.putEnumerated( cID( 'Path' ), cID( 'Ordn' ), keyVectorMaskEnabled );
+            var desc = executeActionGet( ref );
+            if ( desc.hasKey( keyKind ) )
+            {
+                var kindValue = desc.getEnumerationValue( keyKind );
+                if (kindValue == keyVectorMaskEnabled)
+                {
+                    hasVectorMask = true;
+                }
+            }
+        }
+        catch(e)
+        {
+            hasVectorMask = false;
+        }
+        return hasVectorMask;
+    },
+
+}

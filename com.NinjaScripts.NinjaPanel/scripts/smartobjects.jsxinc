@@ -1,0 +1,65 @@
+var cID = charIDToTypeID
+var sID =  stringIDToTypeID
+
+smartobject =
+{
+    kind : LayerKind.SMARTOBJECT,
+
+    //Opens current smart object
+    open : function (layer)
+    {
+        if (!this.isSO(layer))
+            return;
+
+        //TODO: Check if only one layer is selected
+
+        executeAction( sID("placedLayerEditContents"), undefined, DialogModes.NO );
+        return app.activeDocument
+   },
+
+    //Converts current selection into smart object
+    make : function ()
+    {
+        executeAction( stringIDToTypeID( "newPlacedLayer" ), undefined, DialogModes.NO );
+    },
+
+    isSO : function (layer)
+    {
+        return layer.kind == LayerKind.SMARTOBJECT
+    },
+
+    is : function (layer)
+    {
+        return layer.kind == LayerKind.SMARTOBJECT
+    },
+
+    replaceContents : function(newFile)
+    {
+        var desc = new ActionDescriptor();
+        desc.putPath( cID("null"), new File(newFile));
+        desc.putInteger(cID("PgNm"), 1);
+        executeAction(sID( "placedLayerReplaceContents" ), desc, DialogModes.NO);
+        return app.activeDocument.activeLayer
+    },
+}
+
+
+smartfilter =
+{
+    HSL : function (Hue, Saturation, Lightness)
+    {
+            var desc9 = new ActionDescriptor();
+            desc9.putEnumerated( sID( "presetKind" ), sID( "presetKindType" ), sID( "presetKindCustom" ) );
+            desc9.putBoolean( cID( "Clrz" ), false );
+                var list2 = new ActionList();
+                    var desc10 = new ActionDescriptor();
+                    desc10.putInteger( cID( "H   " ), Hue );
+                    desc10.putInteger( cID( "Strt" ), Saturation );
+                    desc10.putInteger( cID( "Lght" ), Lightness );
+                list2.putObject( cID( "Hst2" ), desc10 );
+            desc9.putList( cID( "Adjs" ), list2 );
+        executeAction( cID( "HStr" ), desc9, DialogModes.NO );
+    },
+
+
+}
