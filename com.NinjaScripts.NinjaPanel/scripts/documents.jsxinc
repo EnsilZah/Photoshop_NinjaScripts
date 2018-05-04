@@ -24,4 +24,9 @@ curDoc =
 
         executeAction( cID( "Dplc" ), desc2, DialogModes.NO );
     },
+
+        ensureNoBG : function()
+    {
+        if (activeDocument.artLayers.length != 0) { activeDocument.artLayers[activeDocument.artLayers.length - 1].isBackgroundLayer = false; }
+    },
 }
